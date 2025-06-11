@@ -1,0 +1,95 @@
+/* Fondo general con gradiente */
+.register-page-wrapper {
+  height: calc(100vh - 78px);
+  background: linear-gradient(180deg, #86E895 0%, #ffffff 100%);
+  overflow: hidden; /* quita scroll */
+}
+
+/* Card principal */
+.register-card {
+  background-color: #ffffff;
+  border-radius: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Título */
+.text-moonstone {
+  color: #21A3BB; /* Moonstone */
+  font-weight: 700;
+}
+
+/* Inputs */
+.form-control,
+.form-select {
+  border-radius: 0.75rem;
+  border: 1px solid #d0d0d0;
+  padding: 0.65rem 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #54C6A8;
+  box-shadow: 0 0 0 0.15rem rgba(84, 198, 168, 0.25);
+}
+
+/* Etiquetas */
+.form-label {
+  font-weight: 600;
+  color: #555;
+}
+
+/* Botón principal */
+.register-btn {
+  background-color: #54C6A8;
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.register-btn:hover {
+  background-color: #21A3BB;
+  transform: scale(1.03);
+}
+
+/* Validar correo */
+.btn-outline-primary {
+  border-color: #21A3BB;
+  color: #21A3BB;
+}
+
+.btn-outline-primary:hover {
+  background-color: #21A3BB;
+  color: #fff;
+}
+
+.btn-outline-primary[disabled] {
+  background-color: #86E895;
+  border-color: #86E895;
+  color: white;
+  font-weight: 600;
+  cursor: default;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .register-card {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
