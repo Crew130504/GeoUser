@@ -1,8 +1,3 @@
-Perfecto. Aquí tienes el `README.md` actualizado con la corrección en la cadena de conexión (`connectString: 'localhost:1521/XE'`) y manteniendo todo lo demás como estructuraste:
-
----
-
-````markdown
 # GeoUser – Registro geográfico con verificación por correo
 
 **GeoUser** es una aplicación web construida con Angular y Node.js que permite registrar usuarios con su ubicación geográfica jerárquica (país → departamento → ciudad → área → provincia). Incluye verificación de correo electrónico mediante envío de código, y almacenamiento de datos en una base de datos Oracle 11g.
