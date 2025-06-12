@@ -1,8 +1,9 @@
 // src/app/services/user.service.ts
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -22,9 +23,14 @@ export class UserService {
     return this.http.post(`${this.apiUrl}/verificar-codigo`, { email, codigo });
   }
 
-  // Registrar usuario
+  // Registrar usuario con manejo de error personalizado
   registerUser(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/usuarios`, data);
+    return this.http.post(`${this.apiUrl}/usuarios`, data).pipe(
+      catchError((error: HttpErrorResponse) => {
+        const mensaje = error.error?.error || 'Error al registrar usuario';
+        return throwError(() => new Error(mensaje));
+      })
+    );
   }
 
   // Obtener tipos de ubicación
@@ -36,9 +42,9 @@ export class UserService {
   getUbicacionesPorTipo(tipo: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/ubicaciones/tipo/${tipo}`);
   }
-  //Ubicaciones 
-  getUbicaciones(): Observable<any> {
-  return this.http.get(`${this.apiUrl}/ubicaciones`);
-}
 
+  // Obtener todas las ubicaciones
+  getUbicaciones(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ubicaciones`);
+  }
 }

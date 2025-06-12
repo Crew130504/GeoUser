@@ -131,26 +131,26 @@ export class RegisterUserComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.registerForm.valid || !this.correoValidado) {
-      alert('Completa el formulario y valida tu correo antes de enviar.');
-      return;
-    }
-
-    const data = { ...this.registerForm.value };
-    delete data.codigo;
-
-    this.userService.registerUser(data).subscribe({
-      next: () => {
-        alert('Usuario registrado con éxito.');
-        this.registerForm.reset();
-        this.correoValidado = false;
-        this.codigoEnviado = false;
-        this.ubicaciones = { 1: this.ubicaciones[1] }; // mantener países
-        this.seleccionados = {};
-      },
-      error: () => {
-        alert('Error al registrar usuario.');
-      }
-    });
+  if (!this.registerForm.valid || !this.correoValidado) {
+    alert('Completa el formulario y valida tu correo antes de enviar.');
+    return;
   }
+
+  const data = { ...this.registerForm.value };
+  delete data.codigo;
+
+  this.userService.registerUser(data).subscribe({
+    next: () => {
+      alert('Usuario registrado con éxito.');
+      this.registerForm.reset();
+      this.correoValidado = false;
+      this.codigoEnviado = false;
+      this.ubicaciones = { 1: this.ubicaciones[1] }; // mantener países
+      this.seleccionados = {};
+    },
+    error: (err) => {
+      alert(err.message); // ← muestra mensaje personalizado desde backend
+    }
+  });
+}
 }
