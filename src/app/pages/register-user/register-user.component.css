@@ -1,9 +1,11 @@
 /* Fondo general con gradiente */
 .register-page-wrapper {
-  height: calc(100vh - 78px);
+  min-height: 100vh;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
   background: linear-gradient(180deg, #86E895 0%, #ffffff 100%);
-  overflow: hidden; /* quita scroll */
 }
+
 
 /* Card principal */
 .register-card {
@@ -15,11 +17,11 @@
 
 /* Título */
 .text-moonstone {
-  color: #21A3BB; /* Moonstone */
+  color: #21A3BB;
   font-weight: 700;
 }
 
-/* Inputs */
+/* Inputs y selects */
 .form-control,
 .form-select {
   border-radius: 0.75rem;
@@ -56,10 +58,12 @@
   transform: scale(1.03);
 }
 
-/* Validar correo */
+/* Botón validar correo */
 .btn-outline-primary {
   border-color: #21A3BB;
   color: #21A3BB;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-outline-primary:hover {
@@ -73,6 +77,24 @@
   color: white;
   font-weight: 600;
   cursor: default;
+}
+
+/* Código de verificación */
+#codigo {
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+}
+
+/* Verificar código - botón alineado */
+@media (max-width: 768px) {
+  .col-md-4.d-flex.align-items-end {
+    margin-top: 1rem;
+  }
+}
+
+/* Espaciado entre secciones dinámicas */
+.row.mt-2 {
+  margin-top: 1.5rem !important;
 }
 
 /* Responsive */
@@ -92,4 +114,3 @@
     transform: translateY(0);
   }
 }
-

@@ -67,11 +67,6 @@ html {
   margin-top: 2rem;
 }
 
-/* Scroll suave */
-html {
-  scroll-behavior: smooth;
-}
-
 /* Imagen ilustrativa */
 .onboarding-img {
   max-width: 100%;

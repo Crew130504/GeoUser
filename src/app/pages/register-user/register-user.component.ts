@@ -1,16 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-
-interface TipoUbica {
-  codTipoUbica: number;
-  descTipoUbica: string;
-}
+import { UserService } from '../../services/user.service';
 
 interface Ubicacion {
   codUbica: number;
   nomUbica: string;
-  tipoUbica: number;
+  codTipoUbica: number;
+  ubicaSup: number | null;
 }
 
 @Component({
@@ -23,66 +20,114 @@ interface Ubicacion {
 export class RegisterUserComponent implements OnInit {
   registerForm!: FormGroup;
   correoValidado = false;
+  codigoEnviado = false;
 
-  tiposUbicacion: TipoUbica[] = [
-    { codTipoUbica: 1, descTipoUbica: 'País' },
-    { codTipoUbica: 2, descTipoUbica: 'Departamento' },
-    { codTipoUbica: 3, descTipoUbica: 'Ciudad' },
-    { codTipoUbica: 4, descTipoUbica: 'Área' },
-    { codTipoUbica: 5, descTipoUbica: 'Provincia' }
-  ];
+  // Arreglo jerárquico de ubicaciones por tipo
+  ubicaciones: { [nivel: number]: Ubicacion[] } = {};
+  todasUbicaciones: Ubicacion[] = [];
+  seleccionados: { [nivel: number]: number } = {}; // codUbica seleccionados por nivel
 
-  ubicaciones: Ubicacion[] = [
-    { codUbica: 57, nomUbica: 'Colombia', tipoUbica: 1 },
-    { codUbica: 1, nomUbica: 'E.U', tipoUbica: 1 },
-    { codUbica: 34, nomUbica: 'España', tipoUbica: 1 },
-    { codUbica: 54, nomUbica: 'Argentina', tipoUbica: 1 },
-    { codUbica: 5, nomUbica: 'Antioquia', tipoUbica: 2 },
-    { codUbica: 81, nomUbica: 'Arauca', tipoUbica: 2 },
-    { codUbica: 11, nomUbica: 'Bogotá D.C.', tipoUbica: 2 },
-    { codUbica: 15, nomUbica: 'Boyacá', tipoUbica: 2 },
-    { codUbica: 25, nomUbica: 'Cundinamarca', tipoUbica: 2 },
-    { codUbica: 205, nomUbica: 'Alabama', tipoUbica: 4 },
-    { codUbica: 907, nomUbica: 'Alaska', tipoUbica: 4 },
-    { codUbica: 209, nomUbica: 'California', tipoUbica: 4 }
-  ];
-
-  ubicacionesFiltradas: Ubicacion[] = [];
-
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private userService: UserService
+  ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
-      nombre: ['', [Validators.required]],
-      apellido: ['', [Validators.required]],
+      nombre: ['', Validators.required],
+      apellido: ['', Validators.required],
       user: ['', [Validators.required, Validators.maxLength(6)]],
-      fechaRegistro: ['', [Validators.required]],
+      fechaRegistro: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      celular: ['', [Validators.required]],
-      tipoUbica: ['', [Validators.required]],
-      codUbica: ['', [Validators.required]]
+      celular: ['', Validators.required],
+      codUbica: ['', Validators.required], // Provincia (último nivel)
+      codigo: ['']
+    });
+
+    this.cargarUbicaciones();
+  }
+
+  cargarUbicaciones(): void {
+    this.userService.getUbicaciones().subscribe(data => {
+      this.todasUbicaciones = data.map((row: any) => ({
+        codUbica: +row[0],
+        ubicaSup: row[4] !== null ? +row[4] : null,
+        codTipoUbica: +row[2],
+        nomUbica: row[3]
+      }));
+
+      // Inicial: cargar solo países (tipo 1)
+      this.ubicaciones[1] = this.todasUbicaciones.filter(u => u.codTipoUbica === 1);
     });
   }
 
-  onTipoUbicaChange(event: Event): void {
-    const selectedTipo = Number((event.target as HTMLSelectElement).value);
-    this.ubicacionesFiltradas = this.ubicaciones.filter(
-      u => u.tipoUbica === selectedTipo
+  onSelectNivel(nivel: number, event: Event): void {
+    const valor = Number((event.target as HTMLSelectElement).value);
+    this.seleccionados[nivel] = valor;
+
+    // Limpiar niveles siguientes
+    for (let n = nivel + 1; n <= 5; n++) {
+      this.ubicaciones[n] = [];
+      delete this.seleccionados[n];
+    }
+
+    // Buscar hijos para el siguiente nivel
+    const siguiente = nivel + 1;
+    const hijos = this.todasUbicaciones.filter(
+      u => u.codTipoUbica === siguiente && u.ubicaSup === valor
     );
-    this.registerForm.get('codUbica')?.setValue('');
+    if (hijos.length > 0) {
+      this.ubicaciones[siguiente] = hijos;
+    }
+
+    // Si es provincia, actualizar codUbica final
+    if (siguiente === 6 && valor) {
+      this.registerForm.get('codUbica')?.setValue(valor);
+    } else {
+      this.registerForm.get('codUbica')?.setValue('');
+    }
   }
 
   validarCorreo(): void {
     const email = this.registerForm.get('email')?.value;
     if (!email) {
-      alert('⚠️ Por favor ingresa un correo antes de validar.');
+      alert('Por favor ingresa un correo antes de validar.');
       return;
     }
 
-    setTimeout(() => {
-      this.correoValidado = true;
-      alert('✅ Correo validado correctamente (simulado)');
-    }, 500);
+    this.userService.sendValidationCode(email).subscribe({
+      next: () => {
+        this.codigoEnviado = true;
+        alert('Código enviado al correo.');
+      },
+      error: () => {
+        alert('Error al enviar el código.');
+      }
+    });
+  }
+
+  verificarCodigo(): void {
+    const email = this.registerForm.get('email')?.value;
+    const codigo = this.registerForm.get('codigo')?.value;
+
+    if (!codigo) {
+      alert('Ingresa el código recibido.');
+      return;
+    }
+
+    this.userService.verifyCode(email, codigo).subscribe({
+      next: res => {
+        if (res.validado) {
+          this.correoValidado = true;
+          alert('Correo validado correctamente.');
+        } else {
+          alert('Código incorrecto.');
+        }
+      },
+      error: () => {
+        alert('Error al verificar código.');
+      }
+    });
   }
 
   onSubmit(): void {
@@ -91,10 +136,21 @@ export class RegisterUserComponent implements OnInit {
       return;
     }
 
-    console.log('🟢 Usuario registrado:', this.registerForm.value);
-    alert('✅ Usuario registrado con éxito (simulado)');
-    this.registerForm.reset();
-    this.correoValidado = false;
-    this.ubicacionesFiltradas = [];
+    const data = { ...this.registerForm.value };
+    delete data.codigo;
+
+    this.userService.registerUser(data).subscribe({
+      next: () => {
+        alert('Usuario registrado con éxito.');
+        this.registerForm.reset();
+        this.correoValidado = false;
+        this.codigoEnviado = false;
+        this.ubicaciones = { 1: this.ubicaciones[1] }; // mantener países
+        this.seleccionados = {};
+      },
+      error: () => {
+        alert('Error al registrar usuario.');
+      }
+    });
   }
 }
