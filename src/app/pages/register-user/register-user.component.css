@@ -6,7 +6,6 @@
   background: linear-gradient(180deg, #86E895 0%, #ffffff 100%);
 }
 
-
 /* Card principal */
 .register-card {
   background-color: #ffffff;
@@ -34,6 +33,7 @@
 .form-select:focus {
   border-color: #54C6A8;
   box-shadow: 0 0 0 0.15rem rgba(84, 198, 168, 0.25);
+  outline: none;
 }
 
 /* Etiquetas */
@@ -85,7 +85,7 @@
   padding: 0.65rem 1rem;
 }
 
-/* Verificar código - botón alineado */
+/* Alineación del botón verificar en pantallas pequeñas */
 @media (max-width: 768px) {
   .col-md-4.d-flex.align-items-end {
     margin-top: 1rem;
@@ -97,13 +97,14 @@
   margin-top: 1.5rem !important;
 }
 
-/* Responsive */
+/* Ajustes responsivos */
 @media (max-width: 768px) {
   .register-card {
     padding: 2rem 1.5rem;
   }
 }
 
+/* Animación de entrada */
 @keyframes fadeIn {
   from {
     opacity: 0;

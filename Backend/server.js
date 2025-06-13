@@ -138,7 +138,26 @@ app.post('/api/verificar-codigo', (req, res) => {
   res.status(400).json({ validado: false, error: 'Código incorrecto' });
 });
 
+// Verificar si el usuario ya existe
+app.get('/api/usuarios/existe/:user', async (req, res) => {
+  const username = req.params.user.toUpperCase(); // comparar sin importar mayúsculas
+  try {
+    const conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT 1 FROM "USER" WHERE UPPER("USER") = :username`,
+      [username]
+    );
+    await conn.close();
+    res.json({ exists: result.rows.length > 0 });
+  } catch (err) {
+    console.error('Error al verificar usuario:', err.message);
+    res.status(500).json({ error: 'Error en la verificación' });
+  }
+});
+
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
+

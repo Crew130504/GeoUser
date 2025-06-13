@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 
 interface Ubicacion {
@@ -21,26 +21,27 @@ export class RegisterUserComponent implements OnInit {
   registerForm!: FormGroup;
   correoValidado = false;
   codigoEnviado = false;
+  userExiste = false;
 
-  // Arreglo jerárquico de ubicaciones por tipo
   ubicaciones: { [nivel: number]: Ubicacion[] } = {};
   todasUbicaciones: Ubicacion[] = [];
-  seleccionados: { [nivel: number]: number } = {}; // codUbica seleccionados por nivel
+  seleccionados: { [nivel: number]: number } = {};
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService
+    private userService: UserService,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
-      nombre: ['', Validators.required],
-      apellido: ['', Validators.required],
-      user: ['', [Validators.required, Validators.maxLength(6)]],
-      fechaRegistro: ['', Validators.required],
+      nombre: ['', [Validators.required, Validators.pattern(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]{2,25}$/)]],
+      apellido: ['', [Validators.required, Validators.pattern(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]{2,25}$/)]],
+      user: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9]{3,6}$/)]],
+      fechaRegistro: ['', [Validators.required, this.fechaRealistaValidator]],
       email: ['', [Validators.required, Validators.email]],
-      celular: ['', Validators.required],
-      codUbica: ['', Validators.required], // Provincia (último nivel)
+      celular: ['', [Validators.required, Validators.pattern(/^\d{7,16}$/)]],
+      codUbica: ['', Validators.required],
       codigo: ['']
     });
 
@@ -55,8 +56,6 @@ export class RegisterUserComponent implements OnInit {
         codTipoUbica: +row[2],
         nomUbica: row[3]
       }));
-
-      // Inicial: cargar solo países (tipo 1)
       this.ubicaciones[1] = this.todasUbicaciones.filter(u => u.codTipoUbica === 1);
     });
   }
@@ -65,13 +64,11 @@ export class RegisterUserComponent implements OnInit {
     const valor = Number((event.target as HTMLSelectElement).value);
     this.seleccionados[nivel] = valor;
 
-    // Limpiar niveles siguientes
     for (let n = nivel + 1; n <= 5; n++) {
       this.ubicaciones[n] = [];
       delete this.seleccionados[n];
     }
 
-    // Buscar hijos para el siguiente nivel
     const siguiente = nivel + 1;
     const hijos = this.todasUbicaciones.filter(
       u => u.codTipoUbica === siguiente && u.ubicaSup === valor
@@ -80,28 +77,40 @@ export class RegisterUserComponent implements OnInit {
       this.ubicaciones[siguiente] = hijos;
     }
 
-    // Si es provincia, actualizar codUbica final
-    if (siguiente === 6 && valor) {
+    if (valor) {
       this.registerForm.get('codUbica')?.setValue(valor);
-    } else {
-      this.registerForm.get('codUbica')?.setValue('');
     }
   }
 
   validarCorreo(): void {
     const email = this.registerForm.get('email')?.value;
-    if (!email) {
-      alert('Por favor ingresa un correo antes de validar.');
+    const user = this.registerForm.get('user')?.value;
+
+    if (!email || !user) {
+      alert('Completa el usuario y el correo antes de validar.');
       return;
     }
 
-    this.userService.sendValidationCode(email).subscribe({
-      next: () => {
-        this.codigoEnviado = true;
-        alert('Código enviado al correo.');
+    this.userService.existsUser(user).subscribe({
+      next: (res) => {
+        if (res.exists) {
+          alert('Este usuario ya está registrado.');
+          this.userExiste = true;
+        } else {
+          this.userExiste = false;
+          this.userService.sendValidationCode(email).subscribe({
+            next: () => {
+              this.codigoEnviado = true;
+              alert('Código enviado al correo.');
+            },
+            error: () => {
+              alert('Error al enviar el código.');
+            }
+          });
+        }
       },
       error: () => {
-        alert('Error al enviar el código.');
+        alert('Error al verificar existencia del usuario.');
       }
     });
   }
@@ -119,6 +128,7 @@ export class RegisterUserComponent implements OnInit {
       next: res => {
         if (res.validado) {
           this.correoValidado = true;
+          this.cdRef.detectChanges();
           alert('Correo validado correctamente.');
         } else {
           alert('Código incorrecto.');
@@ -131,26 +141,42 @@ export class RegisterUserComponent implements OnInit {
   }
 
   onSubmit(): void {
-  if (!this.registerForm.valid || !this.correoValidado) {
-    alert('Completa el formulario y valida tu correo antes de enviar.');
-    return;
+    if (!this.registerForm.valid || !this.correoValidado || this.userExiste) {
+      this.registerForm.markAllAsTouched();
+      alert('Completa correctamente el formulario, valida tu correo y asegúrate que el usuario no exista.');
+      return;
+    }
+
+    const data = { ...this.registerForm.value };
+    delete data.codigo;
+
+    this.userService.registerUser(data).subscribe({
+      next: () => {
+        alert('Usuario registrado con éxito.');
+        this.registerForm.reset();
+        this.correoValidado = false;
+        this.codigoEnviado = false;
+        this.ubicaciones = { 1: this.ubicaciones[1] };
+        this.seleccionados = {};
+      },
+      error: (err) => {
+        alert(err.message);
+      }
+    });
   }
 
-  const data = { ...this.registerForm.value };
-  delete data.codigo;
+  // Validación personalizada para la fecha
+  fechaRealistaValidator(control: AbstractControl): ValidationErrors | null {
+    const fecha = new Date(control.value);
+    const hoy = new Date();
+    const fechaMinima = new Date('2000-01-01');
 
-  this.userService.registerUser(data).subscribe({
-    next: () => {
-      alert('Usuario registrado con éxito.');
-      this.registerForm.reset();
-      this.correoValidado = false;
-      this.codigoEnviado = false;
-      this.ubicaciones = { 1: this.ubicaciones[1] }; // mantener países
-      this.seleccionados = {};
-    },
-    error: (err) => {
-      alert(err.message); // ← muestra mensaje personalizado desde backend
+    if (!control.value) return null;
+
+    if (isNaN(fecha.getTime()) || fecha < fechaMinima || fecha > hoy) {
+      return { fechaInvalida: true };
     }
-  });
-}
+
+    return null;
+  }
 }

@@ -7,66 +7,59 @@
 
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
           <div class="row g-3">
+            <!-- Nombre -->
             <div class="col-md-6">
               <label for="nombre" class="form-label">Nombre</label>
-              <input
-                type="text"
-                id="nombre"
-                class="form-control"
-                formControlName="nombre"
-                placeholder="Ingresa tu nombre"
-              />
+              <input type="text" id="nombre" class="form-control" formControlName="nombre" placeholder="Ingresa tu nombre" />
+              <div *ngIf="registerForm.get('nombre')?.touched && registerForm.get('nombre')?.invalid" class="text-danger small">
+                El nombre es obligatorio y solo debe tener letras (máx. 25).
+              </div>
             </div>
+
+            <!-- Apellido -->
             <div class="col-md-6">
               <label for="apellido" class="form-label">Apellido</label>
-              <input
-                type="text"
-                id="apellido"
-                class="form-control"
-                formControlName="apellido"
-                placeholder="Ingresa tu apellido"
-              />
+              <input type="text" id="apellido" class="form-control" formControlName="apellido" placeholder="Ingresa tu apellido" />
+              <div *ngIf="registerForm.get('apellido')?.touched && registerForm.get('apellido')?.invalid" class="text-danger small">
+                El apellido es obligatorio y solo debe tener letras (máx. 25).
+              </div>
             </div>
 
+            <!-- Usuario -->
             <div class="col-md-6">
               <label for="user" class="form-label">Usuario</label>
-              <input
-                type="text"
-                id="user"
-                class="form-control"
-                formControlName="user"
-                placeholder="Máx. 6 caracteres"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="fechaRegistro" class="form-label">Fecha de Registro</label>
-              <input
-                type="date"
-                id="fechaRegistro"
-                class="form-control"
-                formControlName="fechaRegistro"
-              />
+              <input type="text" id="user" class="form-control" formControlName="user" placeholder="Máx. 6 caracteres" />
+              <div *ngIf="registerForm.get('user')?.touched && registerForm.get('user')?.invalid" class="text-danger small">
+                Usuario requerido (3-6 letras o números, sin símbolos).
+              </div>
             </div>
 
+            <!-- Fecha de registro -->
+            <div class="col-md-6">
+              <label for="fechaRegistro" class="form-label">Fecha de Registro</label>
+              <input type="date" id="fechaRegistro" class="form-control" formControlName="fechaRegistro" />
+              <div *ngIf="registerForm.get('fechaRegistro')?.touched && registerForm.get('fechaRegistro')?.errors?.['fechaInvalida']" class="text-danger small">
+                La fecha debe estar entre 2000 y hoy.
+              </div>
+
+            </div>
+
+            <!-- Email -->
             <div class="col-md-6">
               <label for="email" class="form-label">Email</label>
-              <input
-                type="email"
-                id="email"
-                class="form-control"
-                formControlName="email"
-                placeholder="ejemplo@email.com"
-              />
+              <input type="email" id="email" class="form-control" formControlName="email" placeholder="ejemplo@email.com" />
+              <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="text-danger small">
+                Ingresa un correo válido.
+              </div>
             </div>
+
+            <!-- Celular -->
             <div class="col-md-6">
               <label for="celular" class="form-label">Celular</label>
-              <input
-                type="text"
-                id="celular"
-                class="form-control"
-                formControlName="celular"
-                placeholder="+57..."
-              />
+              <input type="text" id="celular" class="form-control" formControlName="celular" placeholder="+57..." />
+              <div *ngIf="registerForm.get('celular')?.touched && registerForm.get('celular')?.invalid" class="text-danger small">
+                El celular debe contener entre 7 y 16 dígitos numéricos.
+              </div>
             </div>
 
             <!-- País -->
@@ -116,16 +109,15 @@
             <!-- Provincia -->
             <div class="col-md-6" *ngIf="ubicaciones[5]?.length">
               <label for="provincia" class="form-label">Provincia</label>
-              <select
-                id="provincia"
-                class="form-select"
-                formControlName="codUbica"
-              >
+              <select id="provincia" class="form-select" formControlName="codUbica">
                 <option value="">Seleccione provincia</option>
                 <option *ngFor="let item of ubicaciones[5]" [value]="item.codUbica">
                   {{ item.nomUbica }}
                 </option>
               </select>
+              <div *ngIf="registerForm.get('codUbica')?.touched && registerForm.get('codUbica')?.invalid" class="text-danger small">
+                Selecciona una ubicación válida.
+              </div>
             </div>
           </div>
 
@@ -141,7 +133,7 @@
             </button>
           </div>
 
-          <!-- Campo para ingresar código + botón para verificar -->
+          <!-- Código de verificación -->
           <div *ngIf="codigoEnviado && !correoValidado" class="row g-3 mt-2">
             <div class="col-md-8">
               <label for="codigo" class="form-label">Código de verificación</label>

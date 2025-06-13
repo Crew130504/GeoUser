@@ -47,4 +47,9 @@ export class UserService {
   getUbicaciones(): Observable<any> {
     return this.http.get(`${this.apiUrl}/ubicaciones`);
   }
+  // Verifica si el usuario ya está registrado
+  existsUser(username: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(`${this.apiUrl}/usuarios/existe/${username}`);
+  }
+
 }
