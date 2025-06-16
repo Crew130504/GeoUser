@@ -4,37 +4,37 @@
 
 ---
 
-## 🛠️ Tecnologías
+## Tecnologías
 
 ### Frontend
-- Angular 17+ (Standalone)
-- Bootstrap 5 (con diseño responsivo y buenas prácticas UI/UX)
+- Angular 17+ 
+- Bootstrap 5 
 - TypeScript
 
 ### Backend
 - Node.js (v18+)
 - Express
-- oracledb (con Oracle Instant Client)
-- Nodemailer (con SendGrid)
+- oracledb (requiere Oracle Instant Client)
+- Nodemailer
 
 ### Base de Datos
 - Oracle Database 11g
-- Modelo jerárquico con `TIPOUBICA`, `UBICACION`, `"USER"`
+- Modelo jerárquico con las tablas: `TIPOUBICA`, `UBICACION`, `"USER"`
 
 ---
 
-## 📦 Requisitos previos
+## Requisitos previos
 
 - Node.js `>=18`
-- Angular CLI
+- Angular CLI:
 
 ```bash
 npm install -g @angular/cli
 ````
 
 * Oracle Database 11g corriendo localmente
-* Oracle Instant Client instalado y agregado al PATH
-* Archivo `.env` en el backend con las siguientes variables:
+* Oracle Instant Client instalado y agregado al `PATH`
+* Archivo `.env` configurado en el backend:
 
 ```env
 ORACLE_CLIENT_PATH=C:\ruta\a\instantclient
@@ -44,7 +44,7 @@ MAIL_FROM=GeoUser <tu_correo@proveedor.com>
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
 GeoUser/
@@ -67,7 +67,7 @@ GeoUser/
 
 ---
 
-## ▶️ Cómo ejecutar
+## Ejecución del proyecto
 
 ### Backend
 
@@ -84,53 +84,66 @@ npm install
 node server.js
 ```
 
-El servidor escuchará en: `http://localhost:3000`
+El backend escuchará en: `http://localhost:3000`
 
-> 🔒 El archivo `db.js` usa la cadena de conexión:
+> Nota: El archivo `db.js` utiliza la cadena de conexión:
 > `connectString: 'localhost:1521/XE'`
 
 ### Frontend
 
-1. Instala dependencias:
+1. Instala las dependencias:
 
 ```bash
 npm install
 ```
 
-2. Inicia el proyecto:
+2. Ejecuta el proyecto:
 
 ```bash
 ng serve
 ```
 
-Abre en el navegador: `http://localhost:4200`
+Accede desde el navegador en: `http://localhost:4200`
 
 ---
 
-## 💡 Funcionalidades
+## Funcionalidades principales
 
-* Formulario reactivo para registrar usuarios
-* Cascada de ubicación dependiente: país → depto → ciudad → área → provincia
-* Validación de correo mediante envío de código (SendGrid)
-* Inserción en tabla `"USER"` de Oracle
-* Manejo jerárquico de ubicaciones (`UBICA_SUP`)
-* Corrección automática de caracteres UTF-8 (ñ, á, é…)
-
----
-
-## 🧪 Pruebas
-
-* Puedes insertar datos de prueba en Oracle mediante scripts `INSERT`.
-* Verifica jerarquías con:
-
-  ```sql
-  SELECT * FROM "UBICACION" WHERE "UBICA_SUP" = 'cod_padre';
-  ```
+* Registro de usuarios con formulario reactivo
+* Selección jerárquica de ubicación: país → departamento → ciudad → área → provincia
+* Validación de correo electrónico mediante código (SendGrid)
+* Inserción de datos en tabla `"USER"` de Oracle
+* Soporte jerárquico mediante la columna `UBICA_SUP`
+* Manejo correcto de caracteres UTF-8 (tildes, ñ, etc.)
 
 ---
 
-## 📝 Notas
+## Pruebas y validaciones
 
-* Asegúrate de ejecutar Oracle y que el servicio esté escuchando en `localhost:1521` con nombre `XE`.
-* El usuario de BD debe llamarse `INTERFAZ` con clave `123` (o la que configures).
-* Se requiere conexión estable y variable `ORACLE_CLIENT_PATH` configurada correctamente.
+* Puedes usar los scripts `INSERT` incluidos para cargar datos de prueba en Oracle.
+* Para verificar ubicaciones hijas:
+
+```sql
+SELECT * FROM "UBICACION" WHERE "UBICA_SUP" = 'cod_padre';
+```
+
+---
+
+## Configuración de Oracle UTF-8
+
+Antes de ejecutar la base de datos, asegúrate de establecer el entorno en UTF-8 para evitar errores de codificación Unicode. En la terminal (CMD):
+
+```bash
+chcp 65001
+set NLS_LANG=.AL32UTF8
+sqlplus tu_usuario/tu_contraseña@tu_conexion
+```
+
+---
+
+## Notas finales
+
+* Oracle debe estar corriendo localmente en `localhost:1521` con el servicio `XE`.
+* El usuario de la base de datos debe llamarse `INTERFAZ` con contraseña `123` (puedes modificar esto en la conexión del backend).
+* Asegúrate de tener configurado correctamente `ORACLE_CLIENT_PATH` y que SendGrid tenga permisos para enviar correos.
+
